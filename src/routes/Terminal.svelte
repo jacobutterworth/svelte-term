@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
 
   // Define types
   type Command = {
+    id: string;  // Use a more granular unique identifier
     text: string;
     type: 'command' | 'response';
   };
@@ -10,35 +11,45 @@
   let commands: Command[] = [];
   let currentCommand: string = '';
   const prompt: string = '$ ';
+  let terminalInput: HTMLInputElement;
+  let belowInputDiv: HTMLDivElement;
+  let commandCounter = 0; // Counter to ensure uniqueness
+
+  const generateUniqueId = () => {
+    commandCounter += 1;
+    return `${new Date().toISOString()}-${commandCounter}`;
+  };
 
   const handleCommand = () => {
     if (currentCommand.trim() !== '') {
-      commands = [
-        ...commands,
-        { text: `${prompt}${currentCommand}`, type: 'command' },
-      ];
-      processCommand(currentCommand);
+      const newCommand: Command = {
+        id: generateUniqueId(), // Generate a unique id
+        text: `${prompt}${currentCommand}`,
+        type: 'command'
+      };
+      commands = [...commands, newCommand];
+      processCommand(newCommand.text);
       currentCommand = '';
     }
   };
 
   const processCommand = (cmd: string) => {
-    // Add predefined commands here
     let response = '';
-    switch (cmd.toLowerCase()) {
-      case 'help':
+    const input = cmd.trimEnd();
+    switch (input.toLowerCase()) {
+      case '$ help':
         response = 'Available commands: help, about, clear';
         break;
-      case 'about':
-        response = 'This is a SvelteKit terminal emulator website built by [Your Name].';
+      case '$ about':
+        response = 'This is a SvelteKit terminal emulator.';
         break;
-      case 'clear':
+      case '$ clear':
         commands = [];
         return;
       default:
         response = `Command not found: ${cmd}`;
     }
-    commands = [...commands, { text: response, type: 'response' }];
+    commands = [...commands, { id: generateUniqueId(), text: response, type: 'response' }];
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -47,14 +58,34 @@
     }
   };
 
+  const focusInput = () => {
+    if (terminalInput) {
+      terminalInput.focus();
+    }
+  };
+
+  const adjustBelowInputHeight = () => {
+    if (terminalInput && belowInputDiv) {
+      const inputBottom = terminalInput.getBoundingClientRect().bottom;
+      const windowHeight = window.innerHeight;
+      const height = windowHeight - inputBottom;
+      belowInputDiv.style.height = `${height}px`;
+    }
+  };
+
   onMount(() => {
     const input = document.getElementById('terminal-input') as HTMLInputElement;
     input.focus();
+    adjustBelowInputHeight();
+  });
+
+  afterUpdate(() => {
+    adjustBelowInputHeight();
   });
 </script>
 
 <div class="terminal">
-  {#each commands as command (command.text)}
+  {#each commands as command (command.id)}
     <div class="terminal-line {command.type}">{command.text}</div>
   {/each}
   <div class="input-line">
@@ -64,8 +95,17 @@
       type="text"
       bind:value={currentCommand}
       on:keydown={handleKeyDown}
+      bind:this={terminalInput}
     />
   </div>
+  <div
+    class="below-input"
+    on:click={focusInput}
+    on:keydown={handleKeyDown}
+    role="textbox"
+    tabindex="-1"
+    bind:this={belowInputDiv}
+  ></div>
 </div>
 
 <style>
@@ -77,9 +117,16 @@
     padding: 20px;
     width: 100%;
     height: 100vh;
-    /* margin: auto; */
     overflow-y: auto;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
+
+  .below-input {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent; /* This is for debugging; make it transparent once confirmed */
   }
 
   .terminal-line {
