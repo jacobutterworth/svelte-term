@@ -9,13 +9,15 @@
 	};
 
 	let commands: Command[] = [];
+	let commandHistory: string[] = []; // To keep track of only the input commands
+
 	const availableCommands: string[] = ["help", "about", "clear", "color", "exit"];
 	let currentCommand: string = "";
 	const prompt: string = "$ ";
 	let terminalInput: HTMLInputElement;
 	let belowInputDiv: HTMLDivElement;
 	let commandCounter = 0; // Counter to ensure uniqueness
-	let historyIndex = 0;
+	let historyIndex: number | null = null; // Initialize as null to manage history correctly
 	let color = "green";
 
 	const generateUniqueId = () => {
@@ -25,6 +27,7 @@
 
 	const handleCommand = () => {
 		if (currentCommand.trim() !== "") {
+			commandHistory.push(currentCommand); // Add to history
 			const newCommand: Command = {
 				id: generateUniqueId(), // Generate a unique id
 				text: `${prompt}${currentCommand}`,
@@ -85,9 +88,38 @@
 	};
 
 	const navigateHistory = (direction: number) => {
-		if (historyIndex + direction >= 0 && historyIndex + direction < commands.length) {
-			historyIndex += direction;
-			currentCommand = commands[historyIndex].text;
+		if (commandHistory.length === 0) return;
+
+		if (historyIndex === null) {
+			if (direction === 1) {
+				return;
+			} else {
+				historyIndex = commandHistory.length - 1;
+			}
+			// Start with the most recent command
+			historyIndex = commandHistory.length - 1;
+			// console.log("historyIndex is null");
+		} else {
+			// Adjust history index within the bounds
+			historyIndex = historyIndex + direction;
+
+			if (historyIndex < 0) {
+				historyIndex = 0;
+				// console.log("historyIndex is negative");
+			} else if (historyIndex >= commandHistory.length) {
+				// console.log("historyIndex is greater than or equal to commandHistory.length");
+				currentCommand = "";
+				historyIndex = null;
+				terminalInput.setSelectionRange(0, 0);
+
+				return;
+			}
+		}
+
+		currentCommand = commandHistory[historyIndex];
+		if (terminalInput) {
+			console.log("moving to end of input");
+			terminalInput.setSelectionRange(currentCommand.length, currentCommand.length);
 		}
 	};
 
