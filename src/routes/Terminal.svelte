@@ -1,162 +1,232 @@
 <script lang="ts">
-  import { onMount, afterUpdate } from 'svelte';
+	import { onMount, afterUpdate } from "svelte";
 
-  // Define types
-  type Command = {
-    id: string;  // Use a more granular unique identifier
-    text: string;
-    type: 'command' | 'response';
-  };
+	// Define types
+	type Command = {
+		id: string; // Use a more granular unique identifier
+		text: string;
+		type: "command" | "response";
+	};
 
-  let commands: Command[] = [];
-  let currentCommand: string = '';
-  const prompt: string = '$ ';
-  let terminalInput: HTMLInputElement;
-  let belowInputDiv: HTMLDivElement;
-  let commandCounter = 0; // Counter to ensure uniqueness
+	let commands: Command[] = [];
+	const availableCommands: string[] = ["help", "about", "clear", "color", "exit"];
+	let currentCommand: string = "";
+	const prompt: string = "$ ";
+	let terminalInput: HTMLInputElement;
+	let belowInputDiv: HTMLDivElement;
+	let commandCounter = 0; // Counter to ensure uniqueness
+	let historyIndex = 0;
+	let color = "green";
 
-  const generateUniqueId = () => {
-    commandCounter += 1;
-    return `${new Date().toISOString()}-${commandCounter}`;
-  };
+	const generateUniqueId = () => {
+		commandCounter += 1;
+		return `${new Date().toISOString()}-${commandCounter}`;
+	};
 
-  const handleCommand = () => {
-    if (currentCommand.trim() !== '') {
-      const newCommand: Command = {
-        id: generateUniqueId(), // Generate a unique id
-        text: `${prompt}${currentCommand}`,
-        type: 'command'
-      };
-      commands = [...commands, newCommand];
-      processCommand(newCommand.text);
-      currentCommand = '';
-    }
-  };
+	const handleCommand = () => {
+		if (currentCommand.trim() !== "") {
+			const newCommand: Command = {
+				id: generateUniqueId(), // Generate a unique id
+				text: `${prompt}${currentCommand}`,
+				type: "command"
+			};
+			commands = [...commands, newCommand];
+			processCommand(newCommand.text);
+			currentCommand = "";
+		}
+	};
 
-  const processCommand = (cmd: string) => {
-    let response = '';
-    const input = cmd.trimEnd();
-    switch (input.toLowerCase()) {
-      case '$ help':
-        response = 'Available commands: help, about, clear';
-        break;
-      case '$ about':
-        response = 'This is a SvelteKit terminal emulator.';
-        break;
-      case '$ clear':
-        commands = [];
-        return;
-      default:
-        response = `Command not found: ${cmd}`;
-    }
-    commands = [...commands, { id: generateUniqueId(), text: response, type: 'response' }];
-  };
+	const handleColorChange = (newColor: string) => {
+		const validColors = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"];
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Enter') {
-      handleCommand();
-    }
-  };
+		if (validColors.includes(newColor.toLowerCase())) {
+			color = newColor.toLowerCase();
+			return true;
+		} else {
+			commands = [
+				...commands,
+				{ id: generateUniqueId(), text: `Invalid color: ${newColor}`, type: "response" }
+			];
+			return false;
+		}
+	};
 
-  const focusInput = () => {
-    if (terminalInput) {
-      terminalInput.focus();
-    }
-  };
+	const processCommand = (cmd: string) => {
+		let response = "";
+		const input = cmd.trimEnd();
 
-  const adjustBelowInputHeight = () => {
-    if (terminalInput && belowInputDiv) {
-      const inputBottom = terminalInput.getBoundingClientRect().bottom;
-      const windowHeight = window.innerHeight;
-      const height = windowHeight - inputBottom;
-      belowInputDiv.style.height = `${height}px`;
-    }
-  };
+		const [baseCommand, ...args] = input.split(" ");
 
-  onMount(() => {
-    const input = document.getElementById('terminal-input') as HTMLInputElement;
-    input.focus();
-    adjustBelowInputHeight();
-  });
+		switch (args[0].toLowerCase()) {
+			case "help":
+				response = `Available commands: ${availableCommands.join(", ")}`;
+				break;
+			case "about":
+				response = "This is a SvelteKit terminal emulator.";
+				break;
+			case "clear":
+				commands = [];
+				return;
+			case "color":
+				console.log(args[1]);
 
-  afterUpdate(() => {
-    adjustBelowInputHeight();
-  });
+				const valid = handleColorChange(args[1]);
+				if (valid) {
+					color = args[1].toLowerCase();
+					response = `Color set to ${args[1]}`;
+				} else {
+					// response = `Invalid color: ${args[1]}`;
+				}
+				break;
+			default:
+				response = `Command not found: ${input}`;
+		}
+		commands = [...commands, { id: generateUniqueId(), text: response, type: "response" }];
+	};
+
+	const navigateHistory = (direction: number) => {
+		if (historyIndex + direction >= 0 && historyIndex + direction < commands.length) {
+			historyIndex += direction;
+			currentCommand = commands[historyIndex].text;
+		}
+	};
+
+	const handleKeyDown = (event: KeyboardEvent) => {
+		if (event.key === "Enter") {
+			handleCommand();
+		}
+		if (event.key === "ArrowUp") {
+			navigateHistory(-1);
+		}
+		if (event.key === "ArrowDown") {
+			navigateHistory(1);
+		}
+	};
+
+	const focusInput = () => {
+		if (terminalInput) {
+			terminalInput.focus();
+		}
+	};
+
+	const adjustBelowInputHeight = () => {
+		if (terminalInput && belowInputDiv) {
+			const inputBottom = terminalInput.getBoundingClientRect().bottom;
+			const windowHeight = window.innerHeight;
+			const height = windowHeight - inputBottom;
+			belowInputDiv.style.height = `${height}px`;
+		}
+	};
+
+	onMount(() => {
+		const input = document.getElementById("terminal-input") as HTMLInputElement;
+		input.focus();
+		adjustBelowInputHeight();
+	});
+
+	afterUpdate(() => {
+		adjustBelowInputHeight();
+	});
+
+	const checkValidColor = (inputColor: string) => {
+		const validColors = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"];
+		return validColors.includes(inputColor.toLowerCase());
+	};
+
+	const getTextColor = (inputColor: string) => {
+		switch (inputColor) {
+			case "black":
+				return "text-black-500";
+			case "red":
+				return "text-red-500";
+			case "green":
+				return "text-green-500";
+			case "yellow":
+				return "text-yellow-500";
+			case "blue":
+				return "text-blue-500";
+			case "magenta":
+				return "text-purple-500";
+			case "cyan":
+				return "text-cyan-500";
+			case "white":
+				return "text-white";
+		}
+	};
 </script>
 
-<div class="terminal">
-  {#each commands as command (command.id)}
-    <div class="terminal-line {command.type}">{command.text}</div>
-  {/each}
-  <div class="input-line">
-    <span>{prompt}</span>
-    <input
-      id="terminal-input"
-      type="text"
-      bind:value={currentCommand}
-      on:keydown={handleKeyDown}
-      bind:this={terminalInput}
-    />
-  </div>
-  <div
-    class="below-input"
-    on:click={focusInput}
-    on:keydown={handleKeyDown}
-    role="textbox"
-    tabindex="-1"
-    bind:this={belowInputDiv}
-  ></div>
+<div class={`terminal ${getTextColor(color)}`}>
+	{#each commands as command (command.id)}
+		<div class="terminal-line {command.type}">{command.text}</div>
+	{/each}
+	<div class="input-line">
+		<span>{prompt}</span>
+		<input
+			class={`${getTextColor(color)}`}
+			id="terminal-input"
+			type="text"
+			bind:value={currentCommand}
+			on:keydown={handleKeyDown}
+			bind:this={terminalInput}
+		/>
+	</div>
+	<div
+		class="below-input"
+		on:click={focusInput}
+		on:keydown={handleKeyDown}
+		role="textbox"
+		tabindex="-1"
+		bind:this={belowInputDiv}
+	></div>
 </div>
 
 <style>
-  .terminal {
-    border-radius: 4px;
-    background-color: black;
-    color: green;
-    font-family: 'Courier New', Courier, monospace;
-    padding: 20px;
-    width: 100%;
-    height: 100vh;
-    overflow-y: auto;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  }
+	.terminal {
+		border-radius: 4px;
+		background-color: black;
+		font-family: "Courier New", Courier, monospace;
+		padding: 20px;
+		width: 100%;
+		height: 100vh;
+		overflow-y: auto;
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+	}
 
-  .below-input {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: transparent; /* This is for debugging; make it transparent once confirmed */
-  }
+	.below-input {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: transparent; /* This is for debugging; make it transparent once confirmed */
+	}
 
-  .terminal-line {
-    margin: 0;
-    padding: 0;
-  }
+	.terminal-line {
+		margin: 0;
+		padding: 0;
+	}
 
-  .command {
-    color: lightgreen;
-  }
+	.command {
+		color: lightgreen;
+	}
 
-  .response {
-    color: lightblue;
-  }
+	.response {
+		color: lightblue;
+	}
 
-  .input-line {
-    display: flex;
-  }
+	.input-line {
+		display: flex;
+	}
 
-  .input-line span {
-    margin-right: 5px;
-  }
+	.input-line span {
+		margin-right: 5px;
+	}
 
-  input {
-    background: none;
-    border: none;
-    color: green;
-    outline: none;
-    font-family: inherit;
-    font-size: inherit;
-    width: 100%;
-  }
+	input {
+		background: none;
+		border: none;
+		outline: none;
+		font-family: inherit;
+		font-size: inherit;
+		width: 100%;
+	}
 </style>
