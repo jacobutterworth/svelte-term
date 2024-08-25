@@ -11,7 +11,7 @@
 	let commands: Command[] = [];
 	let commandHistory: string[] = []; // To keep track of only the input commands
 
-	const availableCommands: string[] = ["help", "about", "clear", "color", "exit"];
+	const availableCommands: string[] = ["help", "about", "clear", "color", "echo", "exit"];
 	let currentCommand: string = "";
 	const prompt: string = "$ ";
 	let terminalInput: HTMLInputElement;
@@ -80,6 +80,9 @@
 				} else {
 					// response = `Invalid color: ${args[1]}`;
 				}
+				break;
+			case "echo":
+				response = args.slice(1).join(" ").replaceAll('"', "");
 				break;
 			default:
 				response = `Command not found: ${input}`;
