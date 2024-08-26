@@ -1,24 +1,27 @@
 <script lang="ts">
-	import { onMount, afterUpdate } from "svelte";
+	import { onMount, afterUpdate, createEventDispatcher } from "svelte";
 
-	// Define types
+	export let isExpanded = false; // Make this a prop
+
+	const dispatch = createEventDispatcher();
+
 	type Command = {
-		id: string; // Use a more granular unique identifier
+		id: string;
 		text: string;
 		type: "command" | "response";
 	};
 
 	let commands: Command[] = [];
-	let commandHistory: string[] = []; // To keep track of only the input commands
-
-	const availableCommands: string[] = ["help", "about", "clear", "color", "echo", "exit"];
+	let commandHistory: string[] = [];
+	const availableCommands: string[] = ["help", "about", "clear", "color", "echo", "exit", "close"];
 	let currentCommand: string = "";
 	const prompt: string = "$ ";
 	let terminalInput: HTMLInputElement;
 	let belowInputDiv: HTMLDivElement;
-	let commandCounter = 0; // Counter to ensure uniqueness
-	let historyIndex: number | null = null; // Initialize as null to manage history correctly
+	let commandCounter = 0;
+	let historyIndex: number | null = null;
 	let color = "green";
+	let lastCommandDiv: HTMLDivElement;
 
 	const generateUniqueId = () => {
 		commandCounter += 1;
@@ -27,9 +30,9 @@
 
 	const handleCommand = () => {
 		if (currentCommand.trim() !== "") {
-			commandHistory.push(currentCommand); // Add to history
+			commandHistory.push(currentCommand);
 			const newCommand: Command = {
-				id: generateUniqueId(), // Generate a unique id
+				id: generateUniqueId(),
 				text: `${prompt}${currentCommand}`,
 				type: "command"
 			};
@@ -60,7 +63,7 @@
 
 		const [baseCommand, ...args] = input.split(" ");
 
-		switch (args[0].toLowerCase()) {
+		switch (args[0]?.toLowerCase()) {
 			case "help":
 				response = `Available commands: ${availableCommands.join(", ")}`;
 				break;
@@ -77,12 +80,15 @@
 				if (valid) {
 					color = args[1].toLowerCase();
 					response = `Color set to ${args[1]}`;
-				} else {
-					// response = `Invalid color: ${args[1]}`;
 				}
 				break;
 			case "echo":
 				response = args.slice(1).join(" ").replaceAll('"', "");
+				break;
+			case "close":
+				response = "Closing terminal...";
+				isExpanded = false;
+				dispatch("closeTerminal"); // Dispatch the custom event
 				break;
 			default:
 				response = `Command not found: ${input}`;
@@ -99,22 +105,16 @@
 			} else {
 				historyIndex = commandHistory.length - 1;
 			}
-			// Start with the most recent command
 			historyIndex = commandHistory.length - 1;
-			// console.log("historyIndex is null");
 		} else {
-			// Adjust history index within the bounds
 			historyIndex = historyIndex + direction;
 
 			if (historyIndex < 0) {
 				historyIndex = 0;
-				// console.log("historyIndex is negative");
 			} else if (historyIndex >= commandHistory.length) {
-				// console.log("historyIndex is greater than or equal to commandHistory.length");
 				currentCommand = "";
 				historyIndex = null;
 				terminalInput.setSelectionRange(0, 0);
-
 				return;
 			}
 		}
@@ -161,12 +161,10 @@
 
 	afterUpdate(() => {
 		adjustBelowInputHeight();
+		if (!isExpanded && lastCommandDiv) {
+			lastCommandDiv.scrollIntoView({ behavior: "smooth" });
+		}
 	});
-
-	const checkValidColor = (inputColor: string) => {
-		const validColors = ["black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"];
-		return validColors.includes(inputColor.toLowerCase());
-	};
 
 	const getTextColor = (inputColor: string) => {
 		switch (inputColor) {
@@ -190,9 +188,18 @@
 	};
 </script>
 
-<div class={`terminal ${getTextColor(color)}`}>
+<div
+	class={`terminal ${getTextColor(color)} ${isExpanded ? "expanded" : "collapsed"}`}
+	on:click={() => {
+		adjustBelowInputHeight();
+	}}
+	aria-label="Terminal"
+	role="button"
+	tabindex="-1"
+	on:keydown={handleKeyDown}
+>
 	{#each commands as command (command.id)}
-		<div class="terminal-line {command.type}">{command.text}</div>
+		<div bind:this={lastCommandDiv} class="terminal-line {command.type}">{command.text}</div>
 	{/each}
 	<div class="input-line">
 		<span>{prompt}</span>
@@ -205,14 +212,6 @@
 			bind:this={terminalInput}
 		/>
 	</div>
-	<div
-		class="below-input"
-		on:click={focusInput}
-		on:keydown={handleKeyDown}
-		role="textbox"
-		tabindex="-1"
-		bind:this={belowInputDiv}
-	></div>
 </div>
 
 <style>
@@ -220,19 +219,21 @@
 		border-radius: 4px;
 		background-color: black;
 		font-family: "Courier New", Courier, monospace;
-		padding: 20px;
+		padding: 10px;
 		width: 100%;
-		height: 100vh;
 		overflow-y: auto;
 		box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+		transition: height 0.3s ease;
+		cursor: pointer;
 	}
 
-	.below-input {
-		position: absolute;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		background: transparent; /* This is for debugging; make it transparent once confirmed */
+	.collapsed {
+		height: 40px; /* Adjust to desired height when collapsed */
+	}
+
+	.expanded {
+		height: 30vh; /* Adjust to desired height when expanded */
+		cursor: default;
 	}
 
 	.terminal-line {
