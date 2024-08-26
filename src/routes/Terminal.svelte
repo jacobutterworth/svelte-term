@@ -13,7 +13,16 @@
 
 	let commands: Command[] = [];
 	let commandHistory: string[] = [];
-	const availableCommands: string[] = ["help", "about", "clear", "color", "echo", "exit", "close"];
+	const availableCommands: string[] = [
+		"help",
+		"about",
+		"clear",
+		"color",
+		"echo",
+		"why",
+		"exit",
+		"close"
+	];
 	let currentCommand: string = "";
 	const prompt: string = "$ ";
 	let terminalInput: HTMLInputElement;
@@ -89,6 +98,10 @@
 				response = "Closing terminal...";
 				isExpanded = false;
 				dispatch("closeTerminal"); // Dispatch the custom event
+				break;
+			case "why":
+				response =
+					"I started building this as a terminal emulator-ish appm but realised I was just writing javascript and not learning any Svelte.";
 				break;
 			default:
 				response = `Command not found: ${input}`;
