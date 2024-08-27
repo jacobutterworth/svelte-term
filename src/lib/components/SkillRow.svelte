@@ -16,13 +16,25 @@
 	}
 </script>
 
-<div class="row">
-	<input type="text" bind:value={skill} placeholder="Skill" class="input input-bordered flex-1" />
+<div class="flex gap-4">
+	<label class="input input-bordered flex items-center gap-2">
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			width="1em"
+			height="1em"
+			viewBox="0 0 32 32"
+			{...$$props}
+		>
+			<path fill="currentColor" d="M30 30h-8V4h8zm-10 0h-8V12h8zm-10 0H2V18h8z" />
+		</svg>
+		<input type="text" bind:value={skill} class="input flex" />
+	</label>
+
 	<input
 		type="number"
 		bind:value={yearsOfExperience}
 		placeholder="Years of Experience"
-		class="input input-bordered flex-1"
+		class="input input-bordered flex"
 	/>
 
 	{#if isLastRow}
@@ -60,8 +72,8 @@
 
 <style>
 	.row {
-		display: flex;
-		align-items: center;
-		gap: 10px;
+		/* display: flex; */
+		/* align-items: center; */
+		/* gap: 10px; */
 	}
 </style>

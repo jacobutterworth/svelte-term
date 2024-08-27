@@ -14,8 +14,7 @@
 </script>
 
 <div class="hero w-full">
-	<div class="hero-content flex flex-col lg:flex-row-reverse gap-4">
-		<div class="text-center lg:text-left w-full p-4 lg:p-8"></div>
+	<div class="flex flex-col lg:flex-row-reverse gap-4">
 		<div class="card bg-base-100 w-full shadow-md">
 			<form class="card-body p-4 sm:p-8">
 				<div class="row-auto flex flex-col gap-4 sm:flex-row sm:gap-2">

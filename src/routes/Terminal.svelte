@@ -101,7 +101,7 @@
 				break;
 			case "why":
 				response =
-					"I started building this as a terminal emulator-ish appm but realised I was just writing javascript and not learning any Svelte.";
+					"I started building this as a terminal emulator-ish app, but realised I was just writing javascript and not learning any Svelte.";
 				break;
 			default:
 				response = `Command not found: ${input}`;

@@ -41,7 +41,6 @@
 	</main>
 
 	<footer>
-		<p>visit <a href="https://kit.svelte.dev">kit.svelte.dev</a> to learn SvelteKit</p>
 		<div
 			use:clickoutside
 			on:clickoutside={handleClickOutside}
@@ -80,7 +79,6 @@
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		padding: 12px 12px 0 12px;
 		max-height: 30vh;
 	}
 
