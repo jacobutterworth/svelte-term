@@ -88,7 +88,7 @@
 	/>
 
 	{#if isLastRow}
-		<button onclick={() => add()} class="btn btn-md">
+		<button onclick={() => add()} class="btn btn-md" tabindex="0">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 				<path
 					fill="currentColor"
@@ -97,7 +97,7 @@
 			</svg>
 		</button>
 	{:else}
-		<button onclick={() => remove()} class="btn btn-md">
+		<button onclick={() => remove()} class="btn btn-md" tabindex="0">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 				<path
 					fill="currentColor"

@@ -12,7 +12,7 @@
 </svelte:head>
 
 <main class="flex flex-col items-center p-4 sm:p-8">
-	<h1 class="text-center p-4 sm:p-8">Job stats image generator</h1>
+	<h1 class="text-center p-4 sm:p-8">Careers stats socials generator</h1>
 	<JobStatsForm skills={data.options} />
 </main>
 

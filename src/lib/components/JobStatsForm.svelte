@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import SkillRow from "$lib/components/SkillRow.svelte";
+	import * as htmlToImage from "html-to-image";
 
 	export let skills;
 
@@ -13,9 +14,22 @@
 	function deleteSkill(index: number) {
 		skillsRow = skillsRow.filter((_, i) => i !== index);
 	}
+
+	function generateImage() {
+		const statsForm = document.getElementById("stats-form");
+		if (!statsForm) {
+			return;
+		}
+		htmlToImage.toJpeg(statsForm, { quality: 0.95 }).then(function (dataUrl) {
+			var link = document.createElement("a");
+			link.download = "statsForm.jpeg";
+			link.href = dataUrl;
+			link.click();
+		});
+	}
 </script>
 
-<div class="hero w-full">
+<div class="hero w-full" id="stats-form">
 	<div class="flex flex-col lg:flex-row-reverse gap-4">
 		<div class="card bg-base-100 w-full shadow-md">
 			<form class="card-body p-4 sm:p-8">
@@ -78,7 +92,9 @@
 				{/each}
 
 				<div class="form-control mt-6">
-					<button class="btn btn-success text-white w-full">Generate</button>
+					<button class="btn btn-success text-white w-full" tabindex="0" on:click={generateImage}
+						>Generate</button
+					>
 				</div>
 			</form>
 		</div>
