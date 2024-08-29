@@ -1,51 +1,58 @@
 <script lang="ts">
-	import { createEventDispatcher } from "svelte";
 	import Select from "svelte-select";
-
+	type SkillOption = {
+		value: Number;
+		label: string;
+		isNew: boolean;
+	};
 	type Props = {
 		skill: string;
 		yearsOfExperience: number;
 		isLastRow: boolean;
-		skillOptions: {
-			value: Number;
-			label: string;
-		}[];
+		skillOptions: SkillOption[];
+
 		remove: () => void;
 		add: () => void;
 	};
 
 	let { skill, yearsOfExperience, isLastRow, skillOptions, remove, add }: Props = $props();
 
-	function handleCreate() {
-		console.log("creating  ");
+	let filterText = $state("");
+
+	let items = $state(
+		skillOptions.map((skill) => ({
+			value: skill.value,
+			label: skill.label,
+			isNew: false
+		}))
+	);
+
+	async function handleCreate(e: CustomEvent<SkillOption>) {
+		console.log("creating", items, filterText, e.detail.label);
+
+		if (items.filter((i) => i.isNew).length === 0) {
+			let tempArray = items.filter((item) => item.label !== e.detail.label);
+			items = [...tempArray];
+			console.log("items", items);
+			return;
+		}
+		const newItem = items.filter((i) => i.isNew)[0].label;
+
+		await fetch("/api/skills/create-skill", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({ skill_name: newItem })
+		});
 	}
 
-	let filterText = "";
-
-	let items = skillOptions.map((skill) => ({ value: skill.value, label: skill.label }));
-
-	// function handleFilter(e) {
-	// 	console.log("filter", e);
-	// 	const filtered = e.detail;
-	// 	if (filtered.length === 0 && filterText.length > 0) {
-	// 		const prev = items.filter((i) => !i.created);
-	// 		items = [...prev, { value: filterText, label: filterText, created: true }];
-	// 	}
-	// }
-
-	// function handleChange(e) {
-	// 	console.log("handleChange", e);
-	// 	if (e.detail.created) {
-	// 		// Add the new item to the list
-	// 		items = [...items.filter((i) => !i.created), e.detail];
-	// 	}
-	// 	// Remove the 'created' flag from all items
-	// 	items = items.map((i) => {
-	// 		const { created, ...rest } = i;
-	// 		return rest;
-	// 	});
-	// 	skill = e.detail.value;
-	// }
+	function handleFilter(e: CustomEvent<SkillOption[]>) {
+		if (e.detail.length === 0 && filterText.length > 0) {
+			const prev = items.filter((i) => !i.isNew);
+			items = [...prev, { value: 0, label: filterText, isNew: true }];
+		}
+	}
 </script>
 
 <div class="flex gap-4">
@@ -58,14 +65,14 @@
 			<Select
 				id="skill-select"
 				class="select-style"
-				on:input={() => console.log("imput")}
+				on:change={(e) => handleCreate(e)}
+				on:filter={handleFilter}
 				bind:filterText
-				placeholder=""
 				containerStyles="border-radius: 2px; height: 100%; border: 0px; max-width: 100%;"
 				{items}
 			>
 				<div slot="item" let:item>
-					{item.created ? "Add new: " : ""}
+					{item.isNew === true ? "Add new: " : ""}
 					{item.label}
 				</div>
 			</Select>
@@ -102,9 +109,4 @@
 </div>
 
 <style>
-	.select-style {
-		width: 100%;
-		border-radius: 1px;
-		padding: 0.5rem;
-	}
 </style>

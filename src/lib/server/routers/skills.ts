@@ -18,7 +18,19 @@ export async function getSkill(id: string): Promise<Skill> {
 	return skill[0] as Skill;
 }
 
+export async function getSkillByName(name: string): Promise<Skill> {
+	const skill = await db.select().from(skills).where(eq(skills.name, name));
+
+	return skill[0] as Skill;
+}
+
 export async function createSkill(skill: NewSkill): Promise<Skill> {
+	// check if skill already exists
+	const existingSkill = await getSkillByName(skill.name);
+	if (existingSkill) {
+		return existingSkill;
+	}
+
 	const newSkill = await db.insert(skills).values(skill).returning({
 		id: skills.id,
 		name: skills.name,
