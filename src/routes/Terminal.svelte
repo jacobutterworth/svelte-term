@@ -212,12 +212,12 @@
 	on:keydown={handleKeyDown}
 >
 	{#each commands as command (command.id)}
-		<div bind:this={lastCommandDiv} class="terminal-line {command.type}">{command.text}</div>
+		<div bind:this={lastCommandDiv} class="m-0 p-0 {command.type}">{command.text}</div>
 	{/each}
-	<div class="input-line">
-		<span>{prompt}</span>
+	<div class="flex">
+		<span class="mr-2">{prompt}</span>
 		<input
-			class={`${getTextColor(color)}`}
+			class={`${getTextColor(color)} `}
 			id="terminal-input"
 			type="text"
 			bind:value={currentCommand}
@@ -249,25 +249,12 @@
 		cursor: default;
 	}
 
-	.terminal-line {
-		margin: 0;
-		padding: 0;
-	}
-
 	.command {
 		color: lightgreen;
 	}
 
 	.response {
 		color: lightblue;
-	}
-
-	.input-line {
-		display: flex;
-	}
-
-	.input-line span {
-		margin-right: 5px;
 	}
 
 	input {
