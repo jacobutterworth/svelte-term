@@ -49,7 +49,7 @@
 </script>
 
 <div class="flex gap-4">
-	<div class="form-control flex-1">
+	<div class="form-control w-5/6">
 		<label class="input input-bordered flex items-center gap-2 w-full" for="skill-select">
 			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32">
 				<path fill="currentColor" d="M30 30h-8V4h8zm-10 0h-8V12h8zm-10 0H2V18h8z" />
@@ -61,7 +61,7 @@
 				on:input={() => console.log("imput")}
 				bind:filterText
 				placeholder=""
-				containerStyles="border-radius: 2px; height: 100%; border: 0px;"
+				containerStyles="border-radius: 2px; height: 100%; border: 0px; max-width: 100%;"
 				{items}
 			>
 				<div slot="item" let:item>
@@ -77,7 +77,7 @@
 		min="0"
 		bind:value={yearsOfExperience}
 		placeholder="Years of Experience"
-		class="input input-bordered flex"
+		class="input input-bordered w-1/6"
 	/>
 
 	{#if isLastRow}
