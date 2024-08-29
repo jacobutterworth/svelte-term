@@ -2,62 +2,63 @@
 	import { createEventDispatcher } from "svelte";
 	import Select from "svelte-select";
 
-	export let skill: string;
-	export let yearsOfExperience: number;
-	export let isLastRow = false;
+	type Props = {
+		skill: string;
+		yearsOfExperience: number;
+		isLastRow: boolean;
+		skillOptions: {
+			value: Number;
+			label: string;
+		}[];
+		remove: () => void;
+		add: () => void;
+	};
 
-	const dispatch = createEventDispatcher();
+	let { skill, yearsOfExperience, isLastRow, skillOptions, remove, add }: Props = $props();
 
-	function handleDelete() {
-		dispatch("delete");
-	}
-
-	function handleAdd() {
-		dispatch("add");
-	}
 	function handleCreate() {
 		console.log("creating  ");
 	}
 
 	let filterText = "";
 
-	let items = [
-		{ value: "1", label: "name 1", created: false },
-		{ value: "2", label: "name 2", created: false },
-		{ value: "3", label: "name 3", created: false },
-		{ value: "4", label: "name 4", created: false },
-		{ value: "5", label: "name 5", created: false }
-	];
+	let items = skillOptions.map((skill) => ({ value: skill.value, label: skill.label }));
 
-	function handleFilter(e: CustomEvent<string>) {
-		if (e.detail.length === 0 && filterText.length > 0) {
-			const prev = items.filter((i) => typeof i.created === "undefined");
-			items = [...prev, { value: filterText.toString(), label: filterText, created: true }];
-		}
-	}
+	// function handleFilter(e) {
+	// 	console.log("filter", e);
+	// 	const filtered = e.detail;
+	// 	if (filtered.length === 0 && filterText.length > 0) {
+	// 		const prev = items.filter((i) => !i.created);
+	// 		items = [...prev, { value: filterText, label: filterText, created: true }];
+	// 	}
+	// }
 
-	function handleChange() {
-		console.log("handleChange");
-	}
+	// function handleChange(e) {
+	// 	console.log("handleChange", e);
+	// 	if (e.detail.created) {
+	// 		// Add the new item to the list
+	// 		items = [...items.filter((i) => !i.created), e.detail];
+	// 	}
+	// 	// Remove the 'created' flag from all items
+	// 	items = items.map((i) => {
+	// 		const { created, ...rest } = i;
+	// 		return rest;
+	// 	});
+	// 	skill = e.detail.value;
+	// }
 </script>
 
 <div class="flex gap-4">
 	<div class="form-control flex-1">
 		<label class="input input-bordered flex items-center gap-2 w-full" for="skill-select">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="1em"
-				height="1em"
-				viewBox="0 0 32 32"
-				{...$$props}
-			>
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 32 32">
 				<path fill="currentColor" d="M30 30h-8V4h8zm-10 0h-8V12h8zm-10 0H2V18h8z" />
 			</svg>
+
 			<Select
 				id="skill-select"
 				class="select-style"
-				on:change={handleChange}
-				on:filter={handleFilter}
+				on:input={() => console.log("imput")}
 				bind:filterText
 				placeholder=""
 				containerStyles="border-radius: 2px; height: 100%; border: 0px;"
@@ -80,14 +81,8 @@
 	/>
 
 	{#if isLastRow}
-		<button on:click={handleAdd} class="btn btn-md">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="1em"
-				height="1em"
-				viewBox="0 0 24 24"
-				{...$$props}
-			>
+		<button onclick={() => add()} class="btn btn-md">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 				<path
 					fill="currentColor"
 					d="M18 12.998h-5v5a1 1 0 0 1-2 0v-5H6a1 1 0 0 1 0-2h5v-5a1 1 0 0 1 2 0v5h5a1 1 0 0 1 0 2"
@@ -95,14 +90,8 @@
 			</svg>
 		</button>
 	{:else}
-		<button on:click={handleDelete} class="btn btn-md">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="1em"
-				height="1em"
-				viewBox="0 0 24 24"
-				{...$$props}
-			>
+		<button onclick={() => remove()} class="btn btn-md">
+			<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24">
 				<path
 					fill="currentColor"
 					d="M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zM8 9h8v10H8zm7.5-5l-1-1h-5l-1 1H5v2h14V4z"

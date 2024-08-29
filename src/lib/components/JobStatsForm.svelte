@@ -2,14 +2,16 @@
 	import { onMount } from "svelte";
 	import SkillRow from "$lib/components/SkillRow.svelte";
 
-	let skills = [{ skill: "", yearsOfExperience: 0 }];
+	export let skills;
+
+	let skillsRow = [{ skill: "", yearsOfExperience: 0 }];
 
 	function addSkill() {
-		skills = [...skills, { skill: "", yearsOfExperience: 0 }];
+		skillsRow = [...skillsRow, { skill: "", yearsOfExperience: 0 }];
 	}
 
 	function deleteSkill(index: number) {
-		skills = skills.filter((_, i) => i !== index);
+		skillsRow = skillsRow.filter((_, i) => i !== index);
 	}
 </script>
 
@@ -64,13 +66,14 @@
 					</div>
 				</div>
 				<span class="label-text font-semibold">Skills</span>
-				{#each skills as { skill, yearsOfExperience }, index (index)}
+				{#each skillsRow as { skill, yearsOfExperience }, index (index)}
 					<SkillRow
-						bind:skill
-						bind:yearsOfExperience
-						isLastRow={index === skills.length - 1}
-						on:add={addSkill}
-						on:delete={() => deleteSkill(index)}
+						{skill}
+						{yearsOfExperience}
+						isLastRow={index === skillsRow.length - 1}
+						add={addSkill}
+						remove={() => deleteSkill(index)}
+						skillOptions={skills}
 					/>
 				{/each}
 
